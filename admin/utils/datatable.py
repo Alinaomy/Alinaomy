@@ -43,7 +43,7 @@ class DataTable(BoxLayout):
         #     'TH3':{0:'Stmpl0',1:'Sample1',2:'Sample2',3:'Sample4'},
         #     'TH4':{0:'Stmple0',1:'Sample1',2:'Sample2',3:'Sample4'},
 
-        col_titles = [k for k in (0, 7)]
+        col_titles = [k for k in products.keys()]
         rows_len = len(products[col_titles[0]])
         self.columns = len(col_titles)
         # print(rows_len)
