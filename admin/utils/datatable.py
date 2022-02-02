@@ -4,6 +4,7 @@ from kivy.lang import Builder
 
 from pymongo import MongoClient
 from collections import OrderedDict
+import mysql.connector
 
 Builder.load_string('''
 <DataTable>:
@@ -50,18 +51,17 @@ class DataTable(BoxLayout):
         table_data = []
         for t in col_titles:
             table_data.append({'text': str(t), 'size_hint_y': None, 'height': 50, 'bcolor': (.06, .45, .45, 1)})
-        self.ids.table_floor.data = table_data
 
         for r in range(rows_len):
             for t in col_titles:
                 table_data.append(
                     {'text': str(products[t][r]), 'size_hint_y': None, 'height': 30, 'bcolor': (.06, .25, .25, 1)})
         self.ids.table_floor_layout.cols = self.columns
+        self.ids.table_floor.data = table_data
 
 # class DataTableApp(App):
-# def build(self):
-#  return DataTable()
-
-
-# if __name__ == '__main__':
-# DataTableApp().run()
+#     def build(self):
+#         return DataTable()
+#
+#     if __name__ == '__main__':
+#         DataTableApp().run()

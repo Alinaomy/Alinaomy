@@ -37,6 +37,7 @@ class AdminWindow(BoxLayout):
             passwd='root',
             database='pos'
         )
+
         mycursor = mydb.cursor()
         _users = OrderedDict()
         _users['first_names'] = {}
@@ -53,6 +54,7 @@ class AdminWindow(BoxLayout):
         sql = 'SELECT * FROM users'
         mycursor.execute(sql)
         users = mycursor.fetchall()
+
         for user in users:
             first_names.append(user[1])
             last_names.append(user[2])
@@ -71,7 +73,7 @@ class AdminWindow(BoxLayout):
             _users['user_names'][idx] = user_names[idx]
             _users['passwords'][idx] = passwords[idx]
             _users['designations'][idx] = designations[idx]
-
+            print(_users)
             idx += 1
 
         return _users
@@ -140,6 +142,7 @@ class AdminWindow(BoxLayout):
         sql = 'SELECT * FROM stocks'
         mycursor.execute(sql)
         products = mycursor.fetchall()
+
         for product in products:
             product_code.append(product[1])
             name = product[2]
@@ -162,6 +165,7 @@ class AdminWindow(BoxLayout):
             _stocks['sold'][idx] = sold[idx]
             _stocks['order'][idx] = order[idx]
             _stocks['last_purchase'][idx] = last_purchase[idx]
+            #print(_stocks)
 
             idx += 1
 
