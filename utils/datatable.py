@@ -35,8 +35,8 @@ class DataTable(BoxLayout):
     def __init__(self, table='', **kwargs):
         super().__init__(**kwargs)
 
-        products = self.get_products()
-        # products = table
+        #products = self.get_products()
+        products = table
         #     stb = {
         #     'TH0':{0:'St0',1:'Sample1',2:'Sample2',3:'Sample4'},
         #     'TH1':{0:'Stm0',1:'Sample1',2:'Sample2',3:'Sample4'},

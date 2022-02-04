@@ -2,15 +2,27 @@ from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
 from kivy.lang import Builder
+import mysql.connector
 
 import re
 
-operator = Builder.load_file('operators.kv')
+Builder.load_file('till_operator/operators.kv')
 
 
 class OperatorWindow(BoxLayout):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.mydb = mysql.connector.connect(
+            host='localhost',
+            user='root',
+            passwd='root',
+            database='pos'
+        )
+
+        self.mycursor = self.mydb.cursor()
+        sql = 'SELECT * FROM stocks'
+        self.mycursor.execute(sql)
+        products = self.mycursor.fetchall()
 
         self.cart = []
         self.qty = []
@@ -19,15 +31,30 @@ class OperatorWindow(BoxLayout):
     def update_purchases(self):
         pcode = self.ids.code_inp.text
         products_container = self.ids.products
-        if pcode == '1234' or pcode == '2345':
+
+        # mycursor = self.mydb.cursor()
+        sql = 'SELECT product_code, product_name, product_price FROM stocks WHERE product_code =%s'
+        values = [pcode]
+        self.mycursor.execute(sql, values)
+        codes = self.mycursor.fetchone()
+        l = []
+        #print(codes)
+        if codes is None:
+            pass
+        else:
+
             details = BoxLayout(size_hint_y=None, height=30, pos_hint={'top': 1})
             products_container.add_widget(details)
+            # for i in len(codes)+1:
+            #     k = list(i)
+            #     l.append(k[i])
+            #     i += 1
 
             code = Label(text=pcode, size_hint_x=.2, color=(.06, .45, .45, 1))
-            name = Label(text='Product One', size_hint_x=.3, color=(.06, .45, .45, 1))
+            name = Label(text=str(codes[1]), size_hint_x=.3, color=(.06, .45, .45, 1))
             qty = Label(text='1', size_hint_x=.1, color=(.06, .45, .45, 1))
             disc = Label(text='0.00', size_hint_x=.1, color=(.06, .45, .45, 1))
-            price = Label(text='0.00', size_hint_x=.1, color=(.06, .45, .45, 1))
+            price = Label(text=str(codes[2]), size_hint_x=.1, color=(.06, .45, .45, 1))
             total = Label(text='0.00', size_hint_x=.2, color=(.06, .45, .45, 1))
             details.add_widget(code)
             details.add_widget(name)
@@ -37,10 +64,9 @@ class OperatorWindow(BoxLayout):
             details.add_widget(total)
 
             # Update Preview
-            pname = "Product One"
-            if pcode == '2345':
-                pname = "Product Two"
-            pprice = 1.00
+            pname = name.text
+
+            pprice = float(price.text)
             pqty = str(1)
             self.total += pprice
             purchase_total = '`\n\nTotal\t\t\t\t\t\t\t\t' + str(self.total)
@@ -70,6 +96,12 @@ class OperatorWindow(BoxLayout):
                 nu_preview = '\n'.join([prev_text, pname + '\t\tx' + pqty + '\t\t' + str(pprice), purchase_total])
                 preview.text = nu_preview
 
+            self.ids.disc_inp.text = '0'
+            self.ids.disc_perc_inp.text = '0'
+            self.ids.qty_inp.text = str(pqty)
+            self.ids.price_inp.text =str(pprice)
+            self.ids.vat_inp.text = '15%'
+            self.ids.total_inp.text = str(pprice)
 
 class OperatorApp(App):
     def build(self):

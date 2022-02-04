@@ -2,17 +2,28 @@ from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.textinput import TextInput
 from kivy.uix.button import Button
+from kivy.uix.label import Label
 from kivy.uix.spinner import Spinner
-from collections import OrderedDict
+from kivy.clock import Clock
+from kivy.uix.modalview import ModalView
+from kivy.lang import Builder
 
-from utils.datatable import DataTable
+from collections import OrderedDict
 import mysql.connector
+from utils.datatable import DataTable
 from datetime import datetime
+import hashlib
 import pandas as pd
 import matplotlib.pyplot as plt
 from kivy.garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg as FCK
 
+Builder.load_file('admin/admin.kv')
 
+class Notify(ModalView):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.size_hint = (.7, .7)
 
 
 class AdminWindow(BoxLayout):
@@ -24,20 +35,26 @@ class AdminWindow(BoxLayout):
             passwd='root',
             database='pos'
         )
-        mycursor = self.mydb.cursor()
+
+        self.mycursor = self.mydb.cursor()
         sql = 'SELECT * FROM stocks'
-        mycursor.execute(sql)
-        products = mycursor.fetchall()
+        self.mycursor.execute(sql)
+        products = self.mycursor.fetchall()
+
+        # sql2 = 'SELECT * FROM users'
+        # mycursor.execute(sql2)
+        # users = mycursor.fetchall()
+
+        self.notify = Notify()
 
         product_code = []
         product_name = []
         spinvals = []
-
         for product in products:
             product_code.append(product[1])
             name = product[2]
-            if len(name) > 10:
-                name = name[:10] + '...'
+            if len(name) > 30:
+                name = name[:30] + '...'
             product_name.append(name)
 
         for x in range(len(product_code)):
@@ -58,40 +75,15 @@ class AdminWindow(BoxLayout):
 
     def add_user_fields(self):
         target = self.ids.ops_fields
-        crud_first = TextInput(hint_text='First Name')
-        crud_last = TextInput(hint_text='Last Name')
-        crud_user = TextInput(hint_text='Username')
-        crud_pwd = TextInput(hint_text='Password')
-        crud_des = Spinner(text='Operator', values=['Operator', 'Administrator'])
-        crud_submit = Button(text='Add', size_hint_x=None, width=100, on_release=lambda x:
-        self.add_user(crud_first.text, crud_last.text, crud_user.text, crud_pwd.text, crud_des.text))
-
-        target.add_widget(crud_first)
-        target.add_widget(crud_last)
-        target.add_widget(crud_user)
-        target.add_widget(crud_pwd)
-        target.add_widget(crud_des)
-        target.add_widget(crud_submit)
-
-    def remove_user_fields(self):
-        target = self.ids.ops_fields
         target.clear_widgets()
-        crud_user = TextInput(hint_text='User Name')
-        crud_submit = Button(text='Remove', size_hint_x=None, width=100,
-                             on_release=lambda x: self.remove_user(crud_user.text))
-
-        target.add_widget(crud_user)
-        target.add_widget(crud_submit)
-
-    def update_user_fields(self):
-        target = self.ids.ops_fields
-        crud_first = TextInput(hint_text='First Name')
-        crud_last = TextInput(hint_text='Last Name')
-        crud_user = TextInput(hint_text='Username')
-        crud_pwd = TextInput(hint_text='Password')
+        crud_first = TextInput(hint_text='First Name', multiline=False)
+        crud_last = TextInput(hint_text='Last Name', multiline=False)
+        crud_user = TextInput(hint_text='User Name', multiline=False)
+        crud_pwd = TextInput(hint_text='Password', multiline=False)
         crud_des = Spinner(text='Operator', values=['Operator', 'Administrator'])
-        crud_submit = Button(text='Update', size_hint_x=None, width=100, on_release=lambda x:
-        self.update_user(crud_first.text, crud_last.text, crud_user.text, crud_pwd.text, crud_des.text))
+        crud_submit = Button(text='Add', size_hint_x=None, width=100,
+                             on_release=lambda x: self.add_user(crud_first.text, crud_last.text, crud_user.text,
+                                                                crud_pwd.text, crud_des.text))
 
         target.add_widget(crud_first)
         target.add_widget(crud_last)
@@ -104,146 +96,271 @@ class AdminWindow(BoxLayout):
         target = self.ids.ops_fields_p
         target.clear_widgets()
 
-        crud_code = TextInput(hint_text='Product Code')
-        crud_name = TextInput(hint_text='Product Name')
-        crud_weight = TextInput(hint_text='Product Weight')
-        crud_price = TextInput(hint_text='Product Price')
-        crud_stock = TextInput(hint_text='Product In Stock')
-        crud_sold = TextInput(hint_text='Product Sold')
-        crud_order = TextInput(hint_text='Product Order')
-        crud_purchase = TextInput(hint_text='Product Last Purchase')
-        crud_submit = Button(text='Add', size_hint_x=None, width=100, on_release=lambda x:
-        self.add_product(crud_code.text, crud_name.text, crud_weight.text, crud_price.text, crud_stock.text,
-                         crud_sold.text, crud_order.text,
-                         crud_purchase.text))
+        crud_code = TextInput(hint_text='Product Code', multiline=False)
+        crud_name = TextInput(hint_text='Product Name', multiline=False)
+        crud_weight = TextInput(hint_text='Product Weight', multiline=False)
+        crud_stock = TextInput(hint_text='Product In Stock', multiline=False)
+        crud_sold = TextInput(hint_text='Products Sold', multiline=False)
+        crud_order = TextInput(hint_text='Ordered', multiline=False)
+        crud_purchase = TextInput(hint_text='Last Purchase', multiline=False)
+        crud_submit = Button(text='Add', size_hint_x=None, width=100,
+                             on_release=lambda x: self.add_product(crud_code.text, crud_name.text, crud_weight.text,
+                                                                   crud_stock.text, crud_sold.text, crud_order.text,
+                                                                   crud_purchase.text))
 
         target.add_widget(crud_code)
         target.add_widget(crud_name)
         target.add_widget(crud_weight)
-        target.add_widget(crud_price)
         target.add_widget(crud_stock)
         target.add_widget(crud_sold)
         target.add_widget(crud_order)
         target.add_widget(crud_purchase)
+        target.add_widget(crud_submit)
+
+    def add_user(self, first, last, user, pwd, des):
+
+        pwd = hashlib.sha256(pwd.encode()).hexdigest()
+        if first == '' or last == '' or user == '' or pwd == '':
+            self.notify.add_widget(Label(text='[color=#FF0000][b]All Fields Required[/b][/color]', markup=True))
+            self.notify.open()
+            Clock.schedule_once(self.killswitch, 1)
+        else:
+            sql = 'INSERT INTO users(first_name,last_name,user_name,password,designation,date) VALUES (%s,%s,%s,%s,%s,%s)'
+            values = [first, last, user, pwd, des, datetime.now()]
+            self.mycursor.execute(sql, values)
+            self.mydb.commit()
+            content = self.ids.scrn_contents
+            content.clear_widgets()
+
+            users = self.get_users()
+            userstable = DataTable(table=users)
+            content.add_widget(userstable)
+
+    def killswitch(self, dtx):
+        self.notify.dismiss()
+        self.notify.clear_widgets()
+
+    def add_product(self, code, name, weight, stock, sold, order, purchase):
+
+        if code == '' or name == '' or weight == '' or stock == '' or order == '':
+            self.notify.add_widget(Label(text='[color=#FF0000][b]All Fields Required[/b][/color]', markup=True))
+            self.notify.open()
+            Clock.schedule_once(self.killswitch, 1)
+        else:
+            #mycursor = self.mydb.cursor()
+            sql = 'INSERT INTO stocks(product_code,product_name,product_weight,in_stock,sold,ordered,last_purchase) VALUES (%s,%s,%s,%s,%s,%s,%s)'
+            values = [code, name, weight, stock, sold, order, purchase]
+            self.mycursor.execute(sql, values)
+            self.mydb.commit()
+            content = self.ids.scrn_product_contents
+            content.clear_widgets()
+
+            prodz = self.get_products()
+            stocktable = DataTable(table=prodz)
+            content.add_widget(stocktable)
+
+    def update_user_fields(self):
+        target = self.ids.ops_fields
+        target.clear_widgets()
+        crud_first = TextInput(hint_text='First Name', multiline=False)
+        crud_last = TextInput(hint_text='Last Name', multiline=False)
+        crud_user = TextInput(hint_text='User Name', multiline=False)
+        crud_pwd = TextInput(hint_text='Password', multiline=False)
+        crud_des = Spinner(text='Operator', values=['Operator', 'Administrator'])
+        crud_submit = Button(text='Update', size_hint_x=None, width=100,
+                             on_release=lambda x: self.update_user(crud_first.text, crud_last.text, crud_user.text,
+                                                                   crud_pwd.text, crud_des.text))
+
+        target.add_widget(crud_first)
+        target.add_widget(crud_last)
+        target.add_widget(crud_user)
+        target.add_widget(crud_pwd)
+        target.add_widget(crud_des)
         target.add_widget(crud_submit)
 
     def update_product_fields(self):
         target = self.ids.ops_fields_p
         target.clear_widgets()
 
-        crud_code = TextInput(hint_text='Code')
-        crud_name = TextInput(hint_text='Name')
-        crud_weight = TextInput(hint_text='Weight')
-        crud_price = TextInput(hint_text='Price')
-        crud_stock = TextInput(hint_text='In Stock')
-        crud_sold = TextInput(hint_text='Sold')
-        crud_order = TextInput(hint_text='Order')
-        crud_purchase = TextInput(hint_text='Last Purchase')
-        crud_submit = Button(text='Update', size_hint_x=None, width=100, on_release=lambda x:
-        self.update_product(crud_code.text, crud_name.text, crud_weight.text, crud_price.text, crud_stock.text,
-                            crud_sold.text, crud_order.text,
-                            crud_purchase.text))
+        crud_code = TextInput(hint_text='Product Code', multiline=False)
+        crud_name = TextInput(hint_text='Product Name', multiline=False)
+        crud_weight = TextInput(hint_text='Product Weight', multiline=False)
+        crud_stock = TextInput(hint_text='Product In Stock', multiline=False)
+        crud_sold = TextInput(hint_text='Products Sold', multiline=False)
+        crud_order = TextInput(hint_text='Ordered', multiline=False)
+        crud_purchase = TextInput(hint_text='Last Purchase', multiline=False)
+        crud_submit = Button(text='Update', size_hint_x=None, width=100,
+                             on_release=lambda x: self.update_product(crud_code.text, crud_name.text, crud_weight.text,
+                                                                      crud_stock.text, crud_sold.text, crud_order.text,
+                                                                      crud_purchase.text))
 
         target.add_widget(crud_code)
         target.add_widget(crud_name)
         target.add_widget(crud_weight)
-        target.add_widget(crud_price)
         target.add_widget(crud_stock)
         target.add_widget(crud_sold)
         target.add_widget(crud_order)
         target.add_widget(crud_purchase)
         target.add_widget(crud_submit)
 
-    def remove_product_fields(self):
-        target = self.ids.ops_fields_p
+    def update_user(self, first, last, user, pwd, des):
+
+        pwd = hashlib.sha256(pwd.encode()).hexdigest()
+        if user == '':
+            self.notify.add_widget(Label(text='[color=#FF0000][b]All Fields Required[/b][/color]', markup=True))
+            self.notify.open()
+            Clock.schedule_once(self.killswitch, 1)
+        else:
+            #mycursor = self.mydb.cursor()
+            sql = 'SELECT user_name FROM users WHERE user_name =%s'
+            values = [user]
+            self.mycursor.execute(sql, values)
+            users = self.mycursor.fetchall()
+
+            # users = self.users.find_one({'user_name': user})
+            if users is None:
+                self.notify.add_widget(Label(text='[color=#FF0000][b]Invalid Username[/b][/color]', markup=True))
+                self.notify.open()
+                Clock.schedule_once(self.killswitch, 1)
+            else:
+                if first == '':
+                    first = user[1]
+                if last == '':
+                    last = user[2]
+                if pwd == '':
+                    pwd = user[3]
+                sql = 'UPDATE users SET first_name=%s,last_name=%s,user_name=%s,password=%s,designation=%s WHERE user_name=%s'
+                values = [first, last, user, pwd, des, user]
+                self.mycursor.execute(sql, values)
+                self.mydb.commit()
+                content = self.ids.scrn_contents
+                content.clear_widgets()
+
+                users = self.get_users()
+                userstable = DataTable(table=users)
+                content.add_widget(userstable)
+
+    def update_product(self, code, name, weight, stock, sold, order, purchase):
+
+        if code == '':
+            self.notify.add_widget(Label(text='[color=#FF0000][b]Code required[/b][/color]', markup=True))
+            self.notify.open()
+            Clock.schedule_once(self.killswitch, 1)
+        else:
+            mycursor = self.mydb.cursor()
+            sql = 'SELECT code FROM stocks WHERE product_code =%s'
+            values = [code]
+            mycursor.execute(sql, values)
+            codes = mycursor.fetchall()
+
+            if codes is None:
+                self.notify.add_widget(Label(text='[color=#FF0000][b]Invalid Code[/b][/color]', markup=True))
+                self.notify.open()
+                Clock.schedule_once(self.killswitch, 1)
+            else:
+                if name == '':
+                    name = code['product_name']
+                if weight == '':
+                    weight = code['product_weight']
+                if stock == '':
+                    stock = code['in_stock']
+                if sold == '':
+                    sold = code['sold']
+                if order == '':
+                    order = code['order']
+                if purchase == '':
+                    purchase = code['last_purchase']
+                content = self.ids.scrn_product_contents
+                content.clear_widgets()
+
+                sql = 'UPDATE stocks SET product_code=%s,product_name=%s,product_weight=%s,in_stock=%s,sold=%s,ordered=%s,last_purchase=%s WHERE product_code=%s'
+                values = [code, name, weight, stock, sold, order, purchase, code]
+                self.mycursor.execute(sql, values)
+                self.mydb.commit()
+
+                prodz = self.get_products()
+                stocktable = DataTable(table=prodz)
+                content.add_widget(stocktable)
+
+    def remove_user_fields(self):
+        target = self.ids.ops_fields
         target.clear_widgets()
-        crud_user = TextInput(hint_text='Product Code')
+        crud_user = TextInput(hint_text='User Name')
         crud_submit = Button(text='Remove', size_hint_x=None, width=100,
-                             on_release=lambda x: self.remove_product(crud_user.text))
+                             on_release=lambda x: self.remove_user(crud_user.text))
 
         target.add_widget(crud_user)
         target.add_widget(crud_submit)
 
-    def add_product(self, code, name, weight, price, stock, sold, order, purchase):
-        product_scrn = self.ids.scrn_product_contents
-        product_scrn.clear_widgets()
+    def remove_product_fields(self):
+        target = self.ids.ops_fields_p
+        target.clear_widgets()
+        crud_code = TextInput(hint_text='Product Code')
+        crud_submit = Button(text='Remove', size_hint_x=None, width=100,
+                             on_release=lambda x: self.remove_product(crud_code.text))
 
-        sql = 'INSERT INTO stocks(product_code,product_name,product_weight,product_price,in_stock,sold,ordered,last_purchase) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)'
-        values = [code, name, weight, price, stock, sold, order, purchase]
-
-        self.mycursor.execute(sql, values)
-        self.mydb.commit()
-
-        products = self.get_products()
-        prod_table = DataTable(table=products)
-        product_scrn.add_widget(prod_table)
-
-    def update_product(self, code, name, weight, price, stock, sold, order, purchase):
-        product_scrn = self.ids.scrn_product_contents
-        product_scrn.clear_widgets()
-
-        sql = 'UPDATE stocks SET product_code=%s,product_name=%s,product_weight=%s,product_price=%s,in_stock=%s,sold=%s,ordered=%s,last_purchase=%s'
-        values = [code, name, weight, price, stock, sold, order, purchase]
-
-        self.mycursor.execute(sql, values)
-        self.mydb.commit()
-
-        products = self.get_products()
-        prod_table = DataTable(table=products)
-        product_scrn.add_widget(prod_table)
-
-    def remove_product(self, code):
-        product_scrn = self.ids.scrn_product_contents
-        product_scrn.clear_widgets()
-
-        sql = 'DELETE FROM stocks WHERE product_code=%s'
-        values = [code]
-
-        self.mycursor.execute(sql, values)
-        self.mydb.commit()
-
-        products = self.get_products()
-        prod_table = DataTable(table=products)
-        product_scrn.add_widget(prod_table)
-
-    def add_user(self, first, last, user, pwd, des):
-        content = self.ids.scrn_contents
-        content.clear_widgets()
-        sql = 'INSERT INTO users(first_name,last_name,user_name,password,designation,date) VALUES (%s,%s,%s,%s,%s,%s)'
-        values = [first, last, user, pwd, des, datetime.now()]
-
-        self.mycursor.execute(sql, values)
-        self.mydb.commit()
-
-        users = self.get_users()
-        userstable = DataTable(table=users)
-        content.add_widget(userstable)
-
-    def update_user(self, first, last, user, pwd, des):
-        content = self.ids.scrn_contents
-        content.clear_widgets()
-        sql = 'UPDATE users SET first_name=%s,last_name=%s,user_name=%s,password=%s,designation=%s WHERE user_name=%s'
-        values = [first, last, user, pwd, des, user]
-
-        self.mycursor.execute(sql, values)
-        self.mydb.commit()
-
-        users = self.get_users()
-        userstable = DataTable(table=users)
-        content.add_widget(userstable)
+        target.add_widget(crud_code)
+        target.add_widget(crud_submit)
 
     def remove_user(self, user):
-        content = self.ids.scrn_contents
-        content.clear_widgets()
 
-        sql = 'DELETE FROM users WHERE user_name=%s'
-        values = [user]
-        self.mycursor.execute(sql, values)
-        self.mydb.commit()
+        if user == '':
+            self.notify.add_widget(Label(text='[color=#FF0000][b]All Fields Required[/b][/color]', markup=True))
+            self.notify.open()
+            Clock.schedule_once(self.killswitch, 1)
+        else:
+            mycursor = self.mydb.cursor()
+            sql = 'SELECT user_name FROM users WHERE user_name =%s'
+            values = [user]
+            mycursor.execute(sql, values)
+            users = mycursor.fetchall()
 
-        users = self.get_users()
-        userstable = DataTable(table=users)
-        content.add_widget(userstable)
+            if users is None:
+                self.notify.add_widget(Label(text='[color=#FF0000][b]Invalid UserName[/b][/color]', markup=True))
+                self.notify.open()
+                Clock.schedule_once(self.killswitch, 1)
+            else:
+                content = self.ids.scrn_contents
+                content.clear_widgets()
+
+                sql = 'DELETE FROM users WHERE user_name=%s'
+                values = [user]
+
+                self.mycursor.execute(sql, values)
+                self.mydb.commit()
+
+                users = self.get_users()
+                userstable = DataTable(table=users)
+                content.add_widget(userstable)
+
+    def remove_product(self, code):
+        if code == '':
+            self.notify.add_widget(Label(text='[color=#FF0000][b]All Fields Required[/b][/color]', markup=True))
+            self.notify.open()
+            Clock.schedule_once(self.killswitch, 1)
+        else:
+            mycursor = self.mydb.cursor()
+            sql = 'SELECT product_code FROM stocks WHERE product_code =%s'
+            values = [code]
+            mycursor.execute(sql, values)
+            codes = mycursor.fetchall()
+            if codes == None:
+                self.notify.add_widget(Label(text='[color=#FF0000][b]Invalid Code[/b][/color]', markup=True))
+                self.notify.open()
+                Clock.schedule_once(self.killswitch, 1)
+            else:
+                content = self.ids.scrn_product_contents
+                content.clear_widgets()
+
+                sql = 'DELETE FROM stocks WHERE product_code=%s'
+                values = [code]
+
+                self.mycursor.execute(sql, values)
+                self.mydb.commit()
+
+                prodz = self.get_products()
+                stocktable = DataTable(table=prodz)
+                content.add_widget(stocktable)
 
     def get_users(self):
         mydb = mysql.connector.connect(
@@ -254,6 +371,7 @@ class AdminWindow(BoxLayout):
         )
 
         mycursor = mydb.cursor()
+
         _users = OrderedDict()
         _users['first_names'] = {}
         _users['last_names'] = {}
@@ -278,7 +396,7 @@ class AdminWindow(BoxLayout):
             if len(pwd) > 10:
                 pwd = pwd[:10] + '...'
             passwords.append(pwd)
-            designations.append(user[5])
+            designations.append(user[6])
         # print(designations)
         users_length = len(first_names)
         idx = 0
@@ -288,7 +406,7 @@ class AdminWindow(BoxLayout):
             _users['user_names'][idx] = user_names[idx]
             _users['passwords'][idx] = passwords[idx]
             _users['designations'][idx] = designations[idx]
-            # print(_users)
+
             idx += 1
 
         return _users
@@ -305,7 +423,6 @@ class AdminWindow(BoxLayout):
         _stocks['product_code'] = {}
         _stocks['product_name'] = {}
         _stocks['product_weight'] = {}
-        _stocks['price'] = {}
         _stocks['in_stock'] = {}
         _stocks['sold'] = {}
         _stocks['order'] = {}
@@ -314,11 +431,11 @@ class AdminWindow(BoxLayout):
         product_code = []
         product_name = []
         product_weight = []
-        price = []
         in_stock = []
         sold = []
         order = []
         last_purchase = []
+
         sql = 'SELECT * FROM stocks'
         mycursor.execute(sql)
         products = mycursor.fetchall()
@@ -330,7 +447,6 @@ class AdminWindow(BoxLayout):
                 name = name[:10] + '...'
             product_name.append(name)
             product_weight.append(product[3])
-            price.append(product[4])
             in_stock.append(product[5])
             try:
                 sold.append(product[6])
@@ -351,12 +467,10 @@ class AdminWindow(BoxLayout):
             _stocks['product_code'][idx] = product_code[idx]
             _stocks['product_name'][idx] = product_name[idx]
             _stocks['product_weight'][idx] = product_weight[idx]
-            _stocks['price'][idx] = price[idx]
             _stocks['in_stock'][idx] = in_stock[idx]
             _stocks['sold'][idx] = sold[idx]
             _stocks['order'][idx] = order[idx]
             _stocks['last_purchase'][idx] = last_purchase[idx]
-            # print(_stocks)
 
             idx += 1
 
@@ -364,6 +478,7 @@ class AdminWindow(BoxLayout):
 
     def view_stats(self):
         plt.cla()
+        self.ids.analysis_res.clear_widgets()
         target_product = self.ids.target_product.text
         target = target_product[:target_product.find(' | ')]
         name = target_product[target_product.find(' | '):]
@@ -376,14 +491,12 @@ class AdminWindow(BoxLayout):
             if str(df.Product_Code[x]) == target:
                 purchases.append(df.Purchased[x])
                 dates.append(count)
-                count+=1
-
-        plt.bar(dates,purchases,color='teal', label=name)
+                count += 1
+        plt.bar(dates, purchases, color='teal', label=name)
         plt.ylabel('Total Purchases')
         plt.xlabel('day')
 
-        self.ids.analysis_res.append(FCK(plt.gcf()))
-
+        self.ids.analysis_res.add_widget(FCK(plt.gcf()))
 
     def change_screen(self, instance):
         if instance.text == 'Manage Products':
@@ -392,7 +505,6 @@ class AdminWindow(BoxLayout):
             self.ids.scrn_mngr.current = 'scrn_content'
         else:
             self.ids.scrn_mngr.current = 'scrn_analysis'
-
 
 
 class AdminApp(App):
