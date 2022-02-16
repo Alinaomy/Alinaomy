@@ -19,6 +19,7 @@ from kivy.garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg as FCK
 
 Builder.load_file('admin/admin.kv')
 
+
 class Notify(ModalView):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -73,6 +74,9 @@ class AdminWindow(BoxLayout):
         prod_table = DataTable(table=products)
         product_scrn.add_widget(prod_table)
 
+    def logout(self):
+        self.parent.parent.current = 'scrn_si'
+
     def add_user_fields(self):
         target = self.ids.ops_fields
         target.clear_widgets()
@@ -124,17 +128,31 @@ class AdminWindow(BoxLayout):
             self.notify.add_widget(Label(text='[color=#FF0000][b]All Fields Required[/b][/color]', markup=True))
             self.notify.open()
             Clock.schedule_once(self.killswitch, 1)
-        else:
-            sql = 'INSERT INTO users(first_name,last_name,user_name,password,designation,date) VALUES (%s,%s,%s,%s,%s,%s)'
-            values = [first, last, user, pwd, des, datetime.now()]
-            self.mycursor.execute(sql, values)
-            self.mydb.commit()
-            content = self.ids.scrn_contents
-            content.clear_widgets()
 
-            users = self.get_users()
-            userstable = DataTable(table=users)
-            content.add_widget(userstable)
+        else:
+            self.mycursor = self.mydb.cursor()
+            sql = 'SELECT first_name,last_name,password,user_name FROM users WHERE user_name =%s'
+            values = [user]
+            self.mycursor.execute(sql, values)
+            users = self.mycursor.fetchall()
+            print(users)
+            # users = self.users.find_one({'user_name': user})
+            if users:
+                self.notify.add_widget(Label(text='[color=#FF0000][b]Username already existed[/b][/color]', markup=True))
+                self.notify.open()
+                Clock.schedule_once(self.killswitch, 1)
+            else:
+
+                sql = 'INSERT INTO users(first_name,last_name,user_name,password,designation,date) VALUES (%s,%s,%s,%s,%s,%s)'
+                values = [first, last, user, pwd, des, datetime.now()]
+                self.mycursor.execute(sql, values)
+                self.mydb.commit()
+                content = self.ids.scrn_contents
+                content.clear_widgets()
+
+                users = self.get_users()
+                userstable = DataTable(table=users)
+                content.add_widget(userstable)
 
     def killswitch(self, dtx):
         self.notify.dismiss()
@@ -147,17 +165,28 @@ class AdminWindow(BoxLayout):
             self.notify.open()
             Clock.schedule_once(self.killswitch, 1)
         else:
-            #mycursor = self.mydb.cursor()
-            sql = 'INSERT INTO stocks(product_code,product_name,product_weight,in_stock,sold,ordered,last_purchase) VALUES (%s,%s,%s,%s,%s,%s,%s)'
-            values = [code, name, weight, stock, sold, order, purchase]
+            self.mycursor = self.mydb.cursor()
+            sql = 'SELECT product_name, product_weight, in_stock, sold, last_purchase, product_code FROM stocks WHERE product_code =%s'
+            values = [code]
             self.mycursor.execute(sql, values)
-            self.mydb.commit()
-            content = self.ids.scrn_product_contents
-            content.clear_widgets()
+            codes = self.mycursor.fetchall()
 
-            prodz = self.get_products()
-            stocktable = DataTable(table=prodz)
-            content.add_widget(stocktable)
+            if codes is None:
+                self.notify.add_widget(Label(text='[color=#FF0000][b]Invalid Code[/b][/color]', markup=True))
+                self.notify.open()
+                Clock.schedule_once(self.killswitch, 1)
+            else:
+                self.mycursor = self.mydb.cursor()
+                sql = 'INSERT INTO stocks(product_code,product_name,product_weight,in_stock,sold,ordered,last_purchase) VALUES (%s,%s,%s,%s,%s,%s,%s)'
+                values = [code, name, weight, stock, sold, order, purchase]
+                self.mycursor.execute(sql, values)
+                self.mydb.commit()
+                content = self.ids.scrn_product_contents
+                content.clear_widgets()
+
+                prodz = self.get_products()
+                stocktable = DataTable(table=prodz)
+                content.add_widget(stocktable)
 
     def update_user_fields(self):
         target = self.ids.ops_fields
@@ -211,24 +240,25 @@ class AdminWindow(BoxLayout):
             self.notify.open()
             Clock.schedule_once(self.killswitch, 1)
         else:
-            #mycursor = self.mydb.cursor()
-            sql = 'SELECT user_name FROM users WHERE user_name =%s'
+            self.mycursor = self.mydb.cursor()
+            sql = 'SELECT first_name,last_name,password,user_name FROM users WHERE user_name =%s'
             values = [user]
             self.mycursor.execute(sql, values)
             users = self.mycursor.fetchall()
-
+            print(users)
             # users = self.users.find_one({'user_name': user})
-            if users is None:
+            if not users:
                 self.notify.add_widget(Label(text='[color=#FF0000][b]Invalid Username[/b][/color]', markup=True))
                 self.notify.open()
                 Clock.schedule_once(self.killswitch, 1)
             else:
-                if first == '':
-                    first = user[1]
-                if last == '':
-                    last = user[2]
-                if pwd == '':
-                    pwd = user[3]
+                for u in users:
+                    if first == '':
+                        first = u[0]
+                    if last == '':
+                        last = u[1]
+                    if pwd == '':
+                        pwd = u[2]
                 sql = 'UPDATE users SET first_name=%s,last_name=%s,user_name=%s,password=%s,designation=%s WHERE user_name=%s'
                 values = [first, last, user, pwd, des, user]
                 self.mycursor.execute(sql, values)
@@ -247,29 +277,30 @@ class AdminWindow(BoxLayout):
             self.notify.open()
             Clock.schedule_once(self.killswitch, 1)
         else:
-            mycursor = self.mydb.cursor()
-            sql = 'SELECT code FROM stocks WHERE product_code =%s'
+            self.mycursor = self.mydb.cursor()
+            sql = 'SELECT product_name, product_weight, in_stock, sold, last_purchase, product_code FROM stocks WHERE product_code =%s'
             values = [code]
-            mycursor.execute(sql, values)
-            codes = mycursor.fetchall()
+            self.mycursor.execute(sql, values)
+            codes = self.mycursor.fetchall()
 
             if codes is None:
                 self.notify.add_widget(Label(text='[color=#FF0000][b]Invalid Code[/b][/color]', markup=True))
                 self.notify.open()
                 Clock.schedule_once(self.killswitch, 1)
             else:
-                if name == '':
-                    name = code['product_name']
-                if weight == '':
-                    weight = code['product_weight']
-                if stock == '':
-                    stock = code['in_stock']
-                if sold == '':
-                    sold = code['sold']
-                if order == '':
-                    order = code['order']
-                if purchase == '':
-                    purchase = code['last_purchase']
+                for c in codes:
+                    if name == '':
+                        name = c[0]
+                    if weight == '':
+                        weight = c[1]
+                    if stock == '':
+                        stock = c[2]
+                    if sold == '':
+                        sold = c[3]
+                    if order == '':
+                        order = c[4]
+                    if purchase == '':
+                        purchase = c[5]
                 content = self.ids.scrn_product_contents
                 content.clear_widgets()
 
@@ -305,17 +336,17 @@ class AdminWindow(BoxLayout):
     def remove_user(self, user):
 
         if user == '':
-            self.notify.add_widget(Label(text='[color=#FF0000][b]All Fields Required[/b][/color]', markup=True))
+            self.notify.add_widget(Label(text='[color=#FF0000][b]Enter the product code[/b][/color]', markup=True))
             self.notify.open()
             Clock.schedule_once(self.killswitch, 1)
         else:
-            mycursor = self.mydb.cursor()
+            self.mycursor = self.mydb.cursor()
             sql = 'SELECT user_name FROM users WHERE user_name =%s'
             values = [user]
-            mycursor.execute(sql, values)
-            users = mycursor.fetchall()
+            self.mycursor.execute(sql, values)
+            users = self.mycursor.fetchall()
 
-            if users is None:
+            if not users:
                 self.notify.add_widget(Label(text='[color=#FF0000][b]Invalid UserName[/b][/color]', markup=True))
                 self.notify.open()
                 Clock.schedule_once(self.killswitch, 1)
@@ -339,12 +370,12 @@ class AdminWindow(BoxLayout):
             self.notify.open()
             Clock.schedule_once(self.killswitch, 1)
         else:
-            mycursor = self.mydb.cursor()
+
             sql = 'SELECT product_code FROM stocks WHERE product_code =%s'
             values = [code]
-            mycursor.execute(sql, values)
-            codes = mycursor.fetchall()
-            if codes == None:
+            self.mycursor.execute(sql, values)
+            codes = self.mycursor.fetchall()
+            if not codes:
                 self.notify.add_widget(Label(text='[color=#FF0000][b]Invalid Code[/b][/color]', markup=True))
                 self.notify.open()
                 Clock.schedule_once(self.killswitch, 1)
@@ -373,11 +404,11 @@ class AdminWindow(BoxLayout):
         mycursor = mydb.cursor()
 
         _users = OrderedDict()
-        _users['first_names'] = {}
-        _users['last_names'] = {}
-        _users['user_names'] = {}
-        _users['passwords'] = {}
-        _users['designations'] = {}
+        _users['First Name'] = {}
+        _users['Last Name'] = {}
+        _users['Username'] = {}
+        _users['Passwords'] = {}
+        _users['Date'] = {}
         first_names = []
         last_names = []
         user_names = []
@@ -401,11 +432,11 @@ class AdminWindow(BoxLayout):
         users_length = len(first_names)
         idx = 0
         while idx < users_length:
-            _users['first_names'][idx] = first_names[idx]
-            _users['last_names'][idx] = last_names[idx]
-            _users['user_names'][idx] = user_names[idx]
-            _users['passwords'][idx] = passwords[idx]
-            _users['designations'][idx] = designations[idx]
+            _users['First Name'][idx] = first_names[idx]
+            _users['Last Name'][idx] = last_names[idx]
+            _users['Username'][idx] = user_names[idx]
+            _users['Passwords'][idx] = passwords[idx]
+            _users['Date'][idx] = designations[idx]
 
             idx += 1
 
@@ -418,15 +449,15 @@ class AdminWindow(BoxLayout):
             passwd='root',
             database='pos'
         )
-        mycursor = mydb.cursor()
+        self.mycursor = mydb.cursor()
         _stocks = OrderedDict()
-        _stocks['product_code'] = {}
-        _stocks['product_name'] = {}
-        _stocks['product_weight'] = {}
-        _stocks['in_stock'] = {}
-        _stocks['sold'] = {}
-        _stocks['order'] = {}
-        _stocks['last_purchase'] = {}
+        _stocks['Product Code'] = {}
+        _stocks['Product Name'] = {}
+        _stocks['Product Weight'] = {}
+        _stocks['Stock'] = {}
+        _stocks['Sold'] = {}
+        _stocks['Order'] = {}
+        _stocks['Last Purchase'] = {}
 
         product_code = []
         product_name = []
@@ -437,8 +468,8 @@ class AdminWindow(BoxLayout):
         last_purchase = []
 
         sql = 'SELECT * FROM stocks'
-        mycursor.execute(sql)
-        products = mycursor.fetchall()
+        self.mycursor.execute(sql)
+        products = self.mycursor.fetchall()
 
         for product in products:
             product_code.append(product[1])
@@ -464,13 +495,13 @@ class AdminWindow(BoxLayout):
         products_length = len(product_code)
         idx = 0
         while idx < products_length:
-            _stocks['product_code'][idx] = product_code[idx]
-            _stocks['product_name'][idx] = product_name[idx]
-            _stocks['product_weight'][idx] = product_weight[idx]
-            _stocks['in_stock'][idx] = in_stock[idx]
-            _stocks['sold'][idx] = sold[idx]
-            _stocks['order'][idx] = order[idx]
-            _stocks['last_purchase'][idx] = last_purchase[idx]
+            _stocks['Product Code'][idx] = product_code[idx]
+            _stocks['Product Name'][idx] = product_name[idx]
+            _stocks['Product Weight'][idx] = product_weight[idx]
+            _stocks['Stock'][idx] = in_stock[idx]
+            _stocks['Sold'][idx] = sold[idx]
+            _stocks['Order'][idx] = order[idx]
+            _stocks['Last Purchase'][idx] = last_purchase[idx]
 
             idx += 1
 
@@ -483,7 +514,7 @@ class AdminWindow(BoxLayout):
         target = target_product[:target_product.find(' | ')]
         name = target_product[target_product.find(' | '):]
 
-        df = pd.read_csv('products_purchase.csv')
+        df = pd.read_csv('admin/products_purchase.csv')
         purchases = []
         dates = []
         count = 0

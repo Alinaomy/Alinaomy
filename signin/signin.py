@@ -31,29 +31,39 @@ class SigninWindow(BoxLayout):
         uname = user.text
         passw = pwd.text
 
+        user.text = ''
+        pwd.text = ''
+
         if uname == '' or passw == '':
-            info.text = '[color=#FF0000]username and/or password required [/color]'
+            info.text = '[color=#FF0000]Username and/or password required [/color]'
 
         else:
             sql = 'SELECT user_name, password, designation FROM users WHERE user_name=%s'
             values = [uname]
             self.mycursor.execute(sql, values)
             users = self.mycursor.fetchall()
+            # print(users)
 
-            if users == None:
-                info.text = '[color=#00FF000]Invalid Username[/color]'
+            if not users:
+                info.text = '[color=#FF0000]Invalid Username[/color]'
             else:
                 passw = hashlib.sha256(passw.encode()).hexdigest()
                 for u in users:
-                    if passw == u[2]:
-                        des = u[3]
+                    # print(u[2])
+                    if passw == u[1]:
+                        des = u[2]
+                        info.text = ''
+                        self.parent.parent.parent.ids.scrn_op.children[0].ids.loggedin_user.text = uname
                         if des == 'Administrator':
-                            info.text = '[color=#00FF000]Logged successfully [/color]'
+                            # info.text = '[color=#00FF00]Logged successfully [/color]'
+                            # self.parent.parent.parent.ids.scrn_op.children[0].ids.loggedin_user.text = uname
                             self.parent.parent.current = 'scrn_admin'
                         else:
+                            # self.parent.parent.parent.ids.scrn_op.children[0].ids.loggedin_user.text = uname
                             self.parent.parent.current = 'scrn_op'
+
                     else:
-                        info.text = '[color=#FF0000]Incorrect password required [/color]'
+                        info.text = '[color=#FF0000]Incorrect password  [/color]'
 
 
 class SigninApp(App):

@@ -22,14 +22,17 @@
                 size: self.size
                 pos: self.pos
         Label:
-            text: 'SilverPOS System'
+            text: 'PROVENDERIE TROPICALE'
             size_hint_x: .9
             bold: True
             color: (1,1,1,1)
         FlatButton:
             id: loggedin_user
-            text: 'nix'
+            #text: ''
             color: (1,1,1,1)
+            size_hint_x_x: .1
+            underline: True
+            on_release: root.logout()
 
     BoxLayout:
         id: current
@@ -105,26 +108,37 @@
                 spacing: 5
                 TextInput:
                     id: qty_inp
+                    multiline: False
                     size_hint_x: .1
                 TextInput:
                     id:code_inp
                     size_hint_x: .3
                     multiline: False
-                    on_text_validate: root.update_purchases()
+                    #on_text_validate: root.update_purchases()
                 TextInput:
                     id: disc_inp
+                    multiline: False
+                    readonly: True
                     size_hint_x: .1
                 TextInput:
                     id: disc_perc_inp
+                    multiline: False
+                    readonly: True
                     size_hint_x: .1
                 TextInput:
                     id: vat_inp
+                    multiline: False
+                    readonly: True
                     size_hint_x: .1
                 TextInput:
                     id: price_inp
+                    multiline: False
+                    readonly: True
                     size_hint_x: .1
                 TextInput:
                     id:total_inp
+                    multiline: False
+                    readonly: True
                     size_hint_x: .2
 
             BoxLayout:
@@ -160,16 +174,60 @@
                 GridLayout:
                     id: products
                     cols: 1
-
+            BoxLayout:
+                id: ops_fields_p
+                spacing: 10
+                size_hint_y: None
+                height: 35
+                BoxLayout:
+                    id: ops_btns_p
+                    spacing: 10
+                    size_hint_y: None
+                    height: 45
+                    Button:
+                        id: crud_add_p
+                        text: 'Add Product'
+                        #on_release: root.add_product_fields()
+                        on_release: root.update_purchases()
+                    Button:
+                        id: crud_update_p
+                        text:'Update Product'
+                        on_release: root.update_product_fields()
+                    Button:
+                        id: crud_remove_p
+                        text: 'Remove Product'
+                        on_release: root.remove_product_fields()
         BoxLayout:
             id:preview
             orientation: "vertical"
             size_hint_x: .2
-
+            spacing: 10
             TextInput:
                 id: receipt_preview
                 readonly: True
-                text:'\t\t**********PROVENDERIE TROPICALE********** \n\t\t\tBP:601 - Tsianaloka - Toliara\n\n\t\t\t\t\t\t\t\t\Tel:(261)34-77-496-20\nReceipt No: \nDate: \n\n'
+                #size_hint_y: .4
+                #text:'PROVENDERIE TROPICALE\nBP:601-Tsianaloka-Toliara\nTel:(261)34-77-496-20\nReceipt No:\nDate:\n\n'
+                #on_focus:root.date()
+
+                #id: date
+                readonly: True
+                #text:'Date:'
+                #on_focus: root.date()
+
+
+                #TextInput:
+                    #id:merci
+                    #text: 'Merci pour votre fidélité'
+            BoxLayout:
+                id: ops_btns_p
+                #spacing: 10
+                size_hint_y: None
+                height: 45
+                Button:
+                    id: print
+                    text: 'PRINT'
+                    on_release: root.print()
+
 
     BoxLayout:
         id: footer
