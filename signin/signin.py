@@ -16,7 +16,8 @@ class SigninWindow(BoxLayout):
             host='localhost',
             user='root',
             passwd='root',
-            database='pos'
+            database='pos',
+            auth_plugin='mysql_native_password'
         )
 
         self.mycursor = self.mydb.cursor()

@@ -9,7 +9,7 @@ import os
 import tempfile
 from kivy.uix.button import Button
 from kivy.uix.textinput import TextInput
-from kivymd.uix.picker import MDDatePicker
+
 import re
 from kivy.clock import Clock
 import datetime
@@ -25,7 +25,8 @@ class OperatorWindow(BoxLayout):
             host='localhost',
             user='root',
             passwd='root',
-            database='pos'
+            database='pos',
+            auth_plugin='mysql_native_password'
         )
 
         self.mycursor = self.mydb.cursor()
@@ -47,13 +48,7 @@ class OperatorWindow(BoxLayout):
         self.ids.date.text = str(dobj)
         pass
 
-    def fromDate(self):
-        self.foc = self.ids.date.focus
-        if (self.foc == True):
-            MDDatePicker(self.date).open()
-        else:
-            print("not")
-
+    
     def killswitch(self, dtx):
         self.notify.dismiss()
         self.notify.clear_widgets()

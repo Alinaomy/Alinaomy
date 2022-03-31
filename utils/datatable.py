@@ -2,7 +2,7 @@ from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.lang import Builder
 
-from pymongo import MongoClient
+
 from collections import OrderedDict
 import mysql.connector
 

@@ -13,9 +13,8 @@ import mysql.connector
 from utils.datatable import DataTable
 from datetime import datetime
 import hashlib
-import pandas as pd
-import matplotlib.pyplot as plt
-from kivy.garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg as FCK
+
+
 
 Builder.load_file('admin/admin.kv')
 
@@ -447,7 +446,8 @@ class AdminWindow(BoxLayout):
             host='localhost',
             user='root',
             passwd='root',
-            database='pos'
+            database='pos',
+            auth_plugin='mysql_native_password'
         )
         self.mycursor = mydb.cursor()
         _stocks = OrderedDict()
@@ -491,7 +491,7 @@ class AdminWindow(BoxLayout):
                 last_purchase.append(product[8])
             except KeyError:
                 last_purchase.append('')
-        # print(designations)
+        # print(designations)sss
         products_length = len(product_code)
         idx = 0
         while idx < products_length:
@@ -508,26 +508,7 @@ class AdminWindow(BoxLayout):
         return _stocks
 
     def view_stats(self):
-        plt.cla()
-        self.ids.analysis_res.clear_widgets()
-        target_product = self.ids.target_product.text
-        target = target_product[:target_product.find(' | ')]
-        name = target_product[target_product.find(' | '):]
-
-        df = pd.read_csv('admin/products_purchase.csv')
-        purchases = []
-        dates = []
-        count = 0
-        for x in range(len(df)):
-            if str(df.Product_Code[x]) == target:
-                purchases.append(df.Purchased[x])
-                dates.append(count)
-                count += 1
-        plt.bar(dates, purchases, color='teal', label=name)
-        plt.ylabel('Total Purchases')
-        plt.xlabel('day')
-
-        self.ids.analysis_res.add_widget(FCK(plt.gcf()))
+       pass
 
     def change_screen(self, instance):
         if instance.text == 'Manage Products':
