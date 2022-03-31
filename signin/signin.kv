@@ -1,3 +1,5 @@
+#:import hex kivy.utils.get_color_from_hex
+
 <FlatButton@ButtonBehavior+Label>:
     font_sise: 16
 
@@ -11,7 +13,7 @@
     space_x: self.size[0]/3
     canvas.before:
         Color:
-            rgba:(1,1,1,1)
+            rgba:hex('#b3b6b7')
         Rectangle:
             size: self.size
             pos: self.pos
@@ -21,12 +23,13 @@
         height: 50
         canvas.before:
             Color:
-                rgba:(.06,.45,.45,1)
+                rgba:hex('#f4d03f')
             Rectangle:
                 size: self.size
                 pos: self.pos
         Label:
             text:"PROVENDERIE TROPICALE"
+            color: hex('#2ecc71')
             bold: True
             size_hint_x:.9
 
@@ -66,9 +69,11 @@
             height: 40
         Button:
             text: "Sign In"
+            color: hex('#2ecc71')
+            background_color: hex('#f4d03f')
             size_hint_y : None
             height: 40
-            background_color: (.06,.45,.45,1)
+            
             background_normal: ''
             on_release: root.validate_user()
         Label:

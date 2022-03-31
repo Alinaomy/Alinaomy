@@ -1,3 +1,4 @@
+#:import hex kivy.utils.get_color_from_hex
 <FlatButton@ButtonBehavior+Label>:
     font_size: 14
 
@@ -6,7 +7,7 @@
     orientation: 'vertical'
     canvas.before:
         Color:
-            rgba: (1,1,1, 1)
+            rgba: hex('#b3b6b7')
         Rectangle:
             size: self.size
             pos: self.pos
@@ -17,7 +18,8 @@
         height: 40
         canvas.before:
             Color:
-                rgba: (.06, .45, .45, 1)
+                rgba: hex('#f4d03f')
+                
             Rectangle:
                 size: self.size
                 pos: self.pos
@@ -25,7 +27,7 @@
             text: 'PROVENDERIE TROPICALE'
             size_hint_x: .9
             bold: True
-            color: (1,1,1,1)
+            color: hex('#2ecc71')
         FlatButton:
             id: loggedin_user
             #text: ''
@@ -47,18 +49,18 @@
         Button:
             text: 'Produit recent'
             background_normal: ''
-            background_color: (.06, .32, .32, 1)
+            background_color: hex('#d4ac0d')
             size_hint_x: .4
         Button:
             id: cur_product
-            text: 'Produit par defaut'
+            text: ''
             background_normal: ''
-            background_color: (.06, .4, .4, 1)
+            background_color: hex('#f1c40f')
         Button:
             id: cur_price
             text: '0.00'
             background_normal: ''
-            background_color: (.06, .65, .65, 1)
+            background_color: hex('#f9e79f')
             size_hint_x: .2
 
     BoxLayout:
@@ -187,14 +189,20 @@
                     Button:
                         id: crud_add_p
                         text: 'Add Product'
+                        background_color: hex('#00f347')
+                        color:hex('#00f347')
                         #on_release: root.add_product_fields()
                         on_release: root.update_purchases()
                     Button:
                         id: crud_update_p
+                        background_color: hex('#0004f3')
+                        color:hex('#7274ff')
                         text:'Update Product'
                         on_release: root.update_product_fields()
                     Button:
                         id: crud_remove_p
+                        background_color: hex('#f32d00')
+                        color: hex('#f32d00')
                         text: 'Remove Product'
                         on_release: root.remove_product_fields()
         BoxLayout:
@@ -205,19 +213,8 @@
             TextInput:
                 id: receipt_preview
                 readonly: True
-                #size_hint_y: .4
-                #text:'PROVENDERIE TROPICALE\nBP:601-Tsianaloka-Toliara\nTel:(261)34-77-496-20\nReceipt No:\nDate:\n\n'
-                #on_focus:root.date()
-
-                #id: date
                 readonly: True
-                #text:'Date:'
-                #on_focus: root.date()
-
-
-                #TextInput:
-                    #id:merci
-                    #text: 'Merci pour votre fidélité'
+               
             BoxLayout:
                 id: ops_btns_p
                 #spacing: 10
@@ -225,7 +222,9 @@
                 height: 45
                 Button:
                     id: print
-                    text: 'PRINT'
+                    text: 'VALIDATE'
+                    background_color: hex('#00dff3')
+                    color: hex('#00dff3')
                     on_release: root.print()
 
 
@@ -235,7 +234,7 @@
         height:30
         canvas.before:
             Color:
-                rgba:(.06,.47,.47,1)
+                rgba:hex('#f4d03f')
             Rectangle:
                 size: self.size
                 pos: self.pos
