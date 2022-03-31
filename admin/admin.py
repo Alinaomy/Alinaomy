@@ -134,8 +134,7 @@ class AdminWindow(BoxLayout):
             values = [user]
             self.mycursor.execute(sql, values)
             users = self.mycursor.fetchall()
-            print(users)
-            # users = self.users.find_one({'user_name': user})
+            
             if users:
                 self.notify.add_widget(Label(text='[color=#FF0000][b]Username already existed[/b][/color]', markup=True))
                 self.notify.open()
@@ -426,7 +425,7 @@ class AdminWindow(BoxLayout):
             if len(pwd) > 10:
                 pwd = pwd[:10] + '...'
             passwords.append(pwd)
-            designations.append(user[6])
+            designations.append(user[5])
         # print(designations)
         users_length = len(first_names)
         idx = 0
@@ -453,20 +452,14 @@ class AdminWindow(BoxLayout):
         _stocks = OrderedDict()
         _stocks['Product Code'] = {}
         _stocks['Product Name'] = {}
-        _stocks['Product Weight'] = {}
         _stocks['Stock'] = {}
         _stocks['Sold'] = {}
-        _stocks['Order'] = {}
-        _stocks['Last Purchase'] = {}
-
+        
         product_code = []
         product_name = []
-        product_weight = []
         in_stock = []
         sold = []
-        order = []
-        last_purchase = []
-
+        
         sql = 'SELECT * FROM stocks'
         self.mycursor.execute(sql)
         products = self.mycursor.fetchall()
@@ -477,31 +470,24 @@ class AdminWindow(BoxLayout):
             if len(name) > 10:
                 name = name[:10] + '...'
             product_name.append(name)
-            product_weight.append(product[3])
-            in_stock.append(product[5])
+            
+            in_stock.append(product[3])
             try:
-                sold.append(product[6])
+                sold.append(product[4])
             except KeyError:
                 sold.append('')
-            try:
-                order.append(product[7])
-            except KeyError:
-                order.append('')
-            try:
-                last_purchase.append(product[8])
-            except KeyError:
-                last_purchase.append('')
-        # print(designations)sss
+            
+            
+        
         products_length = len(product_code)
         idx = 0
         while idx < products_length:
             _stocks['Product Code'][idx] = product_code[idx]
             _stocks['Product Name'][idx] = product_name[idx]
-            _stocks['Product Weight'][idx] = product_weight[idx]
+           
             _stocks['Stock'][idx] = in_stock[idx]
             _stocks['Sold'][idx] = sold[idx]
-            _stocks['Order'][idx] = order[idx]
-            _stocks['Last Purchase'][idx] = last_purchase[idx]
+            
 
             idx += 1
 

@@ -39,7 +39,7 @@ class SigninWindow(BoxLayout):
             info.text = '[color=#FF0000]Username and/or password required [/color]'
 
         else:
-            sql = 'SELECT user_name, password, designation FROM users WHERE user_name=%s'
+            sql = 'SELECT username, password, designation FROM users WHERE username=%s'
             values = [uname]
             self.mycursor.execute(sql, values)
             users = self.mycursor.fetchall()
@@ -48,7 +48,7 @@ class SigninWindow(BoxLayout):
             if not users:
                 info.text = '[color=#FF0000]Invalid Username[/color]'
             else:
-                passw = hashlib.sha256(passw.encode()).hexdigest()
+                # passw = hashlib.sha256(passw.encode()).hexdigest()
                 for u in users:
                     # print(u[2])
                     if passw == u[1]:

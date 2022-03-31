@@ -92,10 +92,7 @@ class OperatorWindow(BoxLayout):
 
             details = BoxLayout(size_hint_y=None, height=30, pos_hint={'top': 1})
             products_container.add_widget(details)
-            # for i in len(codes)+1:
-            #     k = list(i)
-            #     l.append(k[i])
-            #     i += 1
+            
             pqty = str(self.ids.qty_inp.text)
             if pqty == '' or 0:
                 pqty = 1
@@ -202,27 +199,7 @@ class OperatorWindow(BoxLayout):
                 nu_text = re.sub(expr, rexpr, prev_text)
                 preview.text = nu_text + self.purchase_total
 
-    # sql = 'SELECT product_code FROM stocks WHERE product_code =%s'
-    # values = [code]
-    # self.mycursor.execute(sql, values)
-    # codes = self.mycursor.fetchall()
-    # if not codes:
-    #     self.notify.add_widget(Label(text='[color=#FF0000][b]Invalid Code[/b][/color]', markup=True))
-    #     self.notify.open()
-    #     Clock.schedule_once(self.killswitch, 1)
-    # else:
-    #     content = self.ids.scrn_product_contents
-    #     content.clear_widgets()
-    #
-    #     sql = 'DELETE FROM stocks WHERE product_code=%s'
-    #     values = [code]
-    #
-    #     self.mycursor.execute(sql, values)
-    #     self.mydb.commit()
-
-    # prodz = self.get_products()
-    # stocktable = DataTable(table=prodz)
-    # content.add_widget(stocktable)
+    
 
 
 class OperatorApp(App):
