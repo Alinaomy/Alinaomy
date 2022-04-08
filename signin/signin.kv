@@ -23,13 +23,13 @@
         height: 50
         canvas.before:
             Color:
-                rgba:hex('#f4d03f')
+                rgba:hex('#2ecc71')
             Rectangle:
                 size: self.size
                 pos: self.pos
         Label:
             text:"PROVENDERIE TROPICALE"
-            color: hex('#2ecc71')
+            color: hex('#273746')
             bold: True
             size_hint_x:.9
 
@@ -55,12 +55,14 @@
                 id: username_field
                 hint_text: "Username"
                 multiline: False
+                write_tab:False
                 focus: True
                 on_text_validate: pwd_field.focus= True
             TextInput:
                 id: pwd_field
                 hint_text: "Password"
                 multiline: False
+                write_tab:False
                 password: True
                 on_text_validate: root.validate_user()
         Label:
@@ -69,8 +71,8 @@
             height: 40
         Button:
             text: "Sign In"
-            color: hex('#2ecc71')
-            background_color: hex('#f4d03f')
+            color: hex('#273746')
+            background_color: hex('#2ecc71')
             size_hint_y : None
             height: 40
             

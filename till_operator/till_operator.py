@@ -39,9 +39,9 @@ class OperatorWindow(BoxLayout):
         self.pcode = {}
         self.cart = {}
         self.qty = []
-        self.total = 0.00
+        self.total = 0.0
         self.notify = Notify()
-        self.purchase_total = 0.0
+        
 
     def logout(self):
         self.parent.parent.current = 'scrn_si'
@@ -84,7 +84,7 @@ class OperatorWindow(BoxLayout):
         values = [pcode]
         self.mycursor.execute(sql, values)
         codes = self.mycursor.fetchone()
-        print(codes)
+        
         l = []
         # print(codes)
         if not codes:
@@ -139,27 +139,28 @@ class OperatorWindow(BoxLayout):
             # if already exist
 
             if ptarget >= 0:
-
+                pprice=self.cart[pcode]['pt']
                 pqty = str(int(self.qty[ptarget]) + int(pqty))
                 self.qty[ptarget] = pqty
-                expr = '%s\t\tx\d\t' % (pname)
-                rexpr = pname + '\t\tx' + str(pqty) + '\t'
+                expr = '%s\t\tx\d\t\t%s' % (pname,pprice)
+                rexpr = pname + '\t\tx' + str(pqty) + '\t\t' + str(pprice*float(pqty)) 
                 nu_text = re.sub(expr, rexpr, prev_text)
                 preview.text = nu_text + self.purchase_total
-                self.cart[pcode]['qty']=self.cart[pcode]['qty']+int(pqty)
-                self.cart[pcode]['pt']=self.cart[pcode]['pt']+int(pqty)*int(pprice)
-                print(self.cart)
+                self.cart[pcode]['qty']=int(self.cart[pcode]['qty'])+int(pqty)
+                self.cart[pcode]['pt']=int(self.cart[pcode]['pt'])+int(pqty)*int(pprice)
+                
+
                 # self.cart[pcode] = pname, pprice, pqty
             # if not exist
 
             else:
 
-                self.cart[pcode] = {'nom':pname, 'pt':int(pprice*float(pqty)), 'qty':pqty}
-                print(self.cart)
+                self.cart[pcode] = {'nom':pname, 'pt':float(pprice*float(pqty)), 'qty':pqty}
+                
 
                 self.qty.append(1)
                 nu_preview = '\n'.join(
-                    [prev_text, pname + '\t\tx' + str(pqty) + '\t\t' + str(pprice), self.purchase_total])
+                    [prev_text, pname + '\t\tx' + str(pqty) + '\t\t' + str(pprice*float(pqty)), self.purchase_total])
                 preview.text = nu_preview
 
             self.ids.disc_inp.text = '0'
@@ -188,22 +189,26 @@ class OperatorWindow(BoxLayout):
         else:
 
             if code in self.cart.keys():
-                pprice = self.cart[code]['pt']
+                pprice = float(self.cart[code]['pt'])
                 
                 pname = self.cart[code]['nom']
-                self.total=sum(d['pt'] for d in self.cart.values() if d)
+                
                 del self.cart[code]
-                # pcode = int(code)
-                # del self.cart[pcode]
-                # sold = self.total - pprice
-                print(self.cart)
+
+                self.total=sum(d['pt'] for d in self.cart.values() if d)
+                
+                expr1= '`\n\n\n\nTotal\t\t\t\t\t\t%s'(self.total)
                 preview = self.ids.receipt_preview
                 prev_text = preview.text
-                expr = '%s\t\tx\d\t\t\d' % (pname)
-
-                rexpr = ""
+                expr = '%s\t\tx\d\t\t%s' % (pname,pprice)
+                rexpr = " "
                 nu_text = re.sub(expr, rexpr, prev_text)
-                preview.text = nu_text 
+                preview.text = nu_text
+
+            else:
+                self.notify.add_widget(Label(text='[color=#FF0000][b]Not in the cart[/b][/color]', markup=True))
+                self.notify.open()
+                Clock.schedule_once(self.killswitch, 1)
 
     
 
