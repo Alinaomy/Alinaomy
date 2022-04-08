@@ -52,7 +52,7 @@ class AdminWindow(BoxLayout):
         spinvals = []
         for product in products:
             product_code.append(product[1])
-            name = product[2]
+            name = str(product[2])
             if len(name) > 30:
                 name = name[:30] + '...'
             product_name.append(name)
@@ -466,7 +466,7 @@ class AdminWindow(BoxLayout):
 
         for product in products:
             product_code.append(product[1])
-            name = product[2]
+            name = str(product[2])
             if len(name) > 10:
                 name = name[:10] + '...'
             product_name.append(name)

@@ -13,6 +13,8 @@ from kivy.uix.textinput import TextInput
 import re
 from kivy.clock import Clock
 import datetime
+
+
 from admin.admin import Notify
 
 Builder.load_file('till_operator/operators.kv')
@@ -82,6 +84,7 @@ class OperatorWindow(BoxLayout):
         values = [pcode]
         self.mycursor.execute(sql, values)
         codes = self.mycursor.fetchone()
+        print(codes)
         l = []
         # print(codes)
         if not codes:
@@ -98,7 +101,7 @@ class OperatorWindow(BoxLayout):
                 pqty = 1
             # tot= int(pqty)*
             code = Label(text=pcode, size_hint_x=.2, color=(.06, .45, .45, 1))
-            name = Label(text=str(codes[1]), size_hint_x=.3, color=(.06, .45, .45, 1))
+            name = Label(text=codes[1], size_hint_x=.3, color=(.06, .45, .45, 1))
             qty = Label(text=str(pqty), size_hint_x=.1, color=(.06, .45, .45, 1))
             disc = Label(text='0.00', size_hint_x=.1, color=(.06, .45, .45, 1))
             price = Label(text=str(codes[2]), size_hint_x=.1, color=(.06, .45, .45, 1))
@@ -143,12 +146,15 @@ class OperatorWindow(BoxLayout):
                 rexpr = pname + '\t\tx' + str(pqty) + '\t'
                 nu_text = re.sub(expr, rexpr, prev_text)
                 preview.text = nu_text + self.purchase_total
+                self.cart[pcode]['qty']=self.cart[pcode]['qty']+int(pqty)
+                self.cart[pcode]['pt']=self.cart[pcode]['pt']+int(pqty)*int(pprice)
+                print(self.cart)
                 # self.cart[pcode] = pname, pprice, pqty
             # if not exist
 
             else:
 
-                self.cart[pcode] = pname, pprice, pqty
+                self.cart[pcode] = {'nom':pname, 'pt':int(pprice*float(pqty)), 'qty':pqty}
                 print(self.cart)
 
                 self.qty.append(1)
@@ -182,14 +188,14 @@ class OperatorWindow(BoxLayout):
         else:
 
             if code in self.cart.keys():
-                pprice = self.cart[code][1]
-                pqty = self.cart[code][2]
-                pname = self.cart[code]
-                self.purchase_total = str(self.total - pprice)
+                pprice = self.cart[code]['pt']
+                
+                pname = self.cart[code]['nom']
+                self.total=sum(d['pt'] for d in self.cart.values() if d)
                 del self.cart[code]
                 # pcode = int(code)
                 # del self.cart[pcode]
-                sold = self.total - pprice
+                # sold = self.total - pprice
                 print(self.cart)
                 preview = self.ids.receipt_preview
                 prev_text = preview.text
@@ -197,7 +203,7 @@ class OperatorWindow(BoxLayout):
 
                 rexpr = ""
                 nu_text = re.sub(expr, rexpr, prev_text)
-                preview.text = nu_text + self.purchase_total
+                preview.text = nu_text 
 
     
 
